@@ -1,3 +1,3 @@
 all: cmp
 cmp: main.cpp
-	g++ -g3 main.cpp -o cmp
+	g++ -g3 lexer.cpp main.cpp -o cmp
