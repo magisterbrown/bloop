@@ -1,13 +1,1 @@
 define procedure ``two-to-the-three-to-the`` [n]:
-block 0: begin
-    cell(0) <= 1;
-    loop n times:
-    block 1: begin
-        cell(0) <= 3 * cell(0);
-    block 1: end
-    loop cell(0) times:
-    block 2: begin
-        cell(1) <= 2 * cell(1);
-    block 2: end;
-    output <= cell(1);
-block 0: end

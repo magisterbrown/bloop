@@ -54,6 +54,7 @@ int main() {
 
     stb_lexer lexx;
     char store[300];
+    asm("int3");
     stb_c_lexer_init(&lexx, prog, &prog[sz-1], store, 300);
     while(lexx.token!=CLEX_eof) {
         stb_c_lexer_get_token(&lexx);
