@@ -12,6 +12,7 @@ enum class Token
     Eof,
     None,
     Digit,
+    Comma,
 };
 
 

@@ -29,7 +29,7 @@ char Lexer::next_char() {
         cur.row++;
     return res;
 }
-Lexer::Lexer(std::string content) : _content(content) {}
+Lexer::Lexer(std::string content) : _content(content), tok(Token::None) {}
 bool Lexer::next_token() {
     while(std::isspace(get_char()))
         next_char();            
@@ -60,6 +60,7 @@ bool Lexer::next_token() {
         case '*': tok=Token::Multiply; return true;
         case '(': tok=Token::LBracket; return true;
         case ')': tok=Token::RBracket; return true;
+        case ',': tok=Token::Comma; return true;
     }
 
     if(std::isalpha(ch)) {
