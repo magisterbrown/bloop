@@ -1,8 +1,9 @@
-#include <print>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 
-enum Token
+
+enum class Token
 {
     Identifier,
     Backticks,
@@ -10,7 +11,9 @@ enum Token
     RSquareBracket,
     Column,
     Eof,
+    None,
 };
+
 
 struct Cur {
     size_t pos, row;
@@ -20,67 +23,77 @@ struct Cur {
 class Lexer {
 public:
     Lexer(std::string content);
-    Token get_next();
+    bool next_token();
+    std::string print_token();
 
     Cur cur;
 
+    Token tok;
     int number;
     std::string string;
-
-    void print_content();
+    
 private:
     std::string _content;
     char get_char();
     char next_char();
 };
+
+std::string Lexer::print_token() {
+    switch(tok) {
+        case Token::Identifier:     return "Identifier(" + string + ")";
+        case Token::Backticks:      return "Backticks";
+        case Token::LSquareBracket: return "LSquareBracket";
+        case Token::RSquareBracket: return "RSquareBracket";
+        case Token::Column:         return "Column";
+        case Token::Eof:            return "Eof";
+        case Token::None:           return "None";
+    }
+    return "";
+}
 char Lexer::get_char() {
-    if(this->cur.pos>=_content.size()) return 0;
+    if(cur.pos>=_content.size()) return 0;
     return _content[cur.pos];
 }
 char Lexer::next_char() {
     char res = _content[cur.pos++];
     if(res == '\n')
-        this->cur.row++;
+        cur.row++;
     return res;
 }
 Lexer::Lexer(std::string content) : _content(content) {}
-Token Lexer::get_next() {
-    // Consume spaces
-    while(std::isspace(this->get_char()))
-        this->next_char();            
+bool Lexer::next_token() {
+    while(std::isspace(get_char()))
+        next_char();            
 
-    char ch = this->next_char();
-    if(ch == '\0') 
-        return Eof;
+    char ch = next_char();
+    if(ch == '\0') {
+        tok=Token::Eof; return true;
+    }
 
     if(ch == '`') {
-        ch = this->next_char();
+        ch = next_char();
         if(ch != '`')
-            abort();
-        return Backticks;
+            return false;
+        tok=Token::Backticks; return true;
     }
 
     switch(ch) {
-        case '[': return LSquareBracket;
-        case ']': return RSquareBracket;
-        case ':': return Column;
+        case '[': tok=Token::LSquareBracket; return true;
+        case ']': tok=Token::RSquareBracket; return true;
+        case ':': tok=Token::Column; return true;
     }
 
-    //asm("int3");
     if(std::isalpha(ch)) {
-        this->string.clear();
-        this->string.push_back(ch);
-        ch = this->get_char();
+        string.clear();
+        string.push_back(ch);
+        ch = get_char();
         while(std::isalpha(ch) || ch  == '-' || ch =='?') {
-            this->string.push_back(this->next_char());
-            ch = this->get_char();
+            string.push_back(next_char());
+            ch = get_char();
         }
-        return Identifier;
+        tok=Token::Identifier; return true;
     }
-    abort(); // TODO: Raise parsing error
-}
-void Lexer::print_content() {
-    println("{}", this->_content);
+    return false;
 }
 
 int main() {
@@ -94,11 +107,10 @@ int main() {
         source_code = content.str();
     }
     Lexer lex = Lexer(source_code);
-    auto nid = lex.get_next();
-    while(nid!=Eof) {
+    lex.next_token();
+    do {
         //if(nid == Backticks)
-        //std::println("Token: {}", nid);
-        nid = lex.get_next();
-    }
-    std::println("haha");
+        std::cout << "Token: " << lex.print_token() << std::endl;
+        lex.next_token();
+    } while(lex.tok!=Token::Eof);
 }
