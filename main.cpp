@@ -38,7 +38,6 @@ char Lexer::get_char() {
     return _content[cur.pos];
 }
 char Lexer::next_char() {
-    if(this->cur.pos+1>=_content.size()) return 0;
     char res = _content[cur.pos++];
     if(res == '\n')
         this->cur.row++;
@@ -95,7 +94,6 @@ int main() {
         source_code = content.str();
     }
     Lexer lex = Lexer(source_code);
-    asm("int3");
     auto nid = lex.get_next();
     while(nid!=Eof) {
         //if(nid == Backticks)
