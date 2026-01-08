@@ -133,7 +133,6 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
                                     }
             case Token::LBracket: operators.push_back(Token::LBracket); break;
             case Token::RBracket: {
-                                    // TODO: handle empty stack errors
                                     while(operators.back() != Token::LBracket) {
                                         process_op(operands, operators);
                                     }
@@ -141,7 +140,6 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
                                     break;
                                 }
             default: if(next == Token::Plus || next == Token::Multiply) {
-                        //Execute  
                         while(!operators.empty() && get_prio(operators.back()) >= get_prio(next)) {
                             process_op(operands, operators);
                         }
