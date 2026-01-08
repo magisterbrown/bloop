@@ -15,6 +15,7 @@ std::string Lexer::print_token() {
         case Token::RBracket:       return "RBracket";
         case Token::Assign:         return "Assign";
         case Token::Multiply:       return "Multiply";
+        case Token::Plus:           return "Plus";
         case Token::None:           return "None";
     }
     return "";
@@ -30,6 +31,7 @@ char Lexer::next_char() {
     return res;
 }
 Lexer::Lexer(std::string content) : _content(content), tok(Token::None) {}
+
 bool Lexer::next_token() {
     while(std::isspace(get_char()))
         next_char();            
@@ -46,9 +48,9 @@ bool Lexer::next_token() {
         tok=Token::Backticks; return true;
     }
 
-    if(ch == '=') {
+    if(ch == '<') {
         ch = next_char();
-        if(ch != '<')
+        if(ch != '=')
             return false;
         tok=Token::Assign; return true;
     }
@@ -57,7 +59,9 @@ bool Lexer::next_token() {
         case '[': tok=Token::LSquareBracket; return true;
         case ']': tok=Token::RSquareBracket; return true;
         case ':': tok=Token::Column; return true;
+        case ';': tok=Token::SemiColumn; return true;
         case '*': tok=Token::Multiply; return true;
+        case '+': tok=Token::Plus; return true;
         case '(': tok=Token::LBracket; return true;
         case ')': tok=Token::RBracket; return true;
         case ',': tok=Token::Comma; return true;

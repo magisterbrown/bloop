@@ -1,6 +1,6 @@
 define procedure ``two-to-the-three-to-the`` [n]:
 block 0: begin
-    cell(0) <= 1;
+    cell(0) <= 1 + 0 * (2 + cell(0) + n);
     loop n times:
     block 1: begin
         cell(0) <= 3 * cell(0);
