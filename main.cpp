@@ -87,9 +87,11 @@ public:
 
 class Assignment : public Step {
 public:
-    Assignment(Lexer &lex, Context context);
+    Assignment() = default;
+    Assignment(Lexer &lex, std::shared_ptr<Context> context);
 private:
-    Context &context;
+    //Refactor assignment to have context pointer
+    std::shared_ptr<Context> &context;
     int target_idx;
     std::unique_ptr<SExpr> expression;
 };
@@ -117,7 +119,7 @@ void process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token
     
 }
 
-Assignment::Assignment(Lexer &lex, Context context) : context(context) {
+Assignment::Assignment(Lexer &lex, std::shared_ptr<Context> context) : context(context) {
     consume_name(lex, "cell");
     consume_type(lex, Token::LBracket);
     consume_type(lex, Token::Digit);
@@ -126,8 +128,10 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
     consume_type(lex, Token::Assign);
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
+    Cur back;
+    //TODO: factor out in expression
     for(;;) {
-        Cur back = lex.cur;
+        back = lex.cur;
         auto next = get_next(lex);
         if(next == Token::Digit) operands.push_back(std::make_unique<Digit>(lex.number));
         else if(next == Token::LBracket) operators.push_back(Token::LBracket);
@@ -137,12 +141,10 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
                 consume_type(lex, Token::Digit);
                 int cell_index = lex.number;
                 consume_type(lex, Token::RBracket);
-                operands.push_back(std::make_unique<RefDigit>(context.cells[cell_index]));
-            } else if(context.parameters.find(lex.string) != context.parameters.end()) {
-                operands.push_back(std::make_unique<RefDigit>(context.parameters[lex.string]));
-            } else {
-                abort();
-            }
+                operands.push_back(std::make_unique<RefDigit>(context->cells[cell_index]));
+            } else if(context->parameters.find(lex.string) != context->parameters.end()) {
+                operands.push_back(std::make_unique<RefDigit>(context->parameters[lex.string]));
+            } else break;
 
         } else if(next == Token::RBracket) {
             while(operators.back() != Token::LBracket) {
@@ -155,30 +157,45 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
                 process_op(operands, operators);
             operators.push_back(next);
 
-        } else {
-            while(!operators.empty()) 
-                process_op(operands, operators);
-            if(operands.size()!=1) {
-                abort();
-            }
-            expression = std::move(operands[0]);
-            lex.cur = back;
-            return;
-        }
+        } else break;
     }
+    while(!operators.empty()) 
+        process_op(operands, operators);
+    if(operands.size()!=1) {
+        abort();
+    }
+    expression = std::move(operands[0]);
+    lex.cur = back;
+    return;
 }
-
 
 class Block {
 public: 
-    Block(Lexer &lex, Context context);
+    Block() = default;
+    Block(Lexer &lex, std::shared_ptr<Context> context);
     void execute();
 private: 
     std::vector<Step> steps;
     int index;
 };
 
-Block::Block(Lexer &lex, Context context) {
+class Loop {
+public: 
+    Loop(Lexer &lex, std::shared_ptr<Context> context);
+private:
+    //Assignment n_times;
+    Block iteration;
+};
+
+Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
+    consume_name(lex, "loop");
+    //n_times = Assignment::Assignment(lex, context);
+    consume_name(lex, "times");
+    consume_type(lex, Token::Column);
+    iteration = Block(lex, context);
+}
+
+Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "block");
     consume_type(lex, Token::Digit);
     index = lex.number;
@@ -199,7 +216,13 @@ Block::Block(Lexer &lex, Context context) {
         } else if(name.compare("block") == 0) {
             break;
         }
+        consume_type(lex, Token::SemiColumn);
     }
+    consume_type(lex, Token::Digit);
+    if(lex.number != index) 
+        abort();
+    consume_type(lex, Token::Column);
+    consume_name(lex, "end");
     // Finish parsing a block
 }
 
@@ -211,6 +234,7 @@ public:
     void execute();
 private:
     Context context; 
+    Block bl;
 };
 
 Procedure::Procedure(Lexer &lex) {
@@ -226,6 +250,7 @@ Procedure::Procedure(Lexer &lex) {
     //std::map<std::string, int> parameters;
     for(int i=0;;i++) {
         consume_type(lex, Token::Identifier);
+        //TODO: check for illegal var names
         context.parameters[lex.string] = 0;
         Token next = get_next(lex);
         if(next == Token::RSquareBracket) 
@@ -234,7 +259,7 @@ Procedure::Procedure(Lexer &lex) {
             abort();
     } 
     consume_type(lex, Token::Column);
-    auto bl = Block(lex, context);
+    bl = Block(lex, std::shared_ptr<Context>(&context));
 }
 
 
