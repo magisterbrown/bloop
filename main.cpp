@@ -49,10 +49,19 @@ public:
 
 class Node : public SExpr {
 public:
+    enum class Operator { Add, Multiply };
+    Node(std::unique_ptr<SExpr> left, std::unique_ptr<SExpr> right, Operator operate) : left(std::move(left)), right(std::move(right)), operate(operate) {}
+    int get() override { 
+        switch(operate) {
+            case Operator::Add:     return left->get() + right->get(); 
+            case Operator::Multiply: return left->get() * right->get(); 
+        }
+        abort();
+    };
+private:
     std::unique_ptr<SExpr> left;
     std::unique_ptr<SExpr> right;
-    Node(std::unique_ptr<SExpr> left, std::unique_ptr<SExpr> right) : left(std::move(left)), right(std::move(right)) {}
-    int get() override { return 3;};
+    Operator operate;
 };
     
 class RefDigit : public SExpr {
@@ -85,7 +94,7 @@ private:
     std::unique_ptr<SExpr> expression;
 };
 
-int get_prio(Token op){
+int get_prio(Token op) {
     switch(op) {
         case Token::Multiply: return 2;
         case Token::Plus: return 1;
@@ -100,7 +109,11 @@ void process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token
     auto right = std::move(operands.back());  operands.pop_back();
     auto left  = std::move(operands.back());  operands.pop_back();
     auto op    = std::move(operators.back()); operators.pop_back();
-    operands.push_back(std::make_unique<Node>(std::move(left), std::move(right)));
+    switch(op) {
+        case Token::Multiply: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Multiply));
+        case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add));
+    }
+    
 }
 
 Assignment::Assignment(Lexer &lex, Context context) : context(context) {
@@ -112,51 +125,45 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
     consume_type(lex, Token::Assign);
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
+    asm("int3");
     for(;;) {
         Cur back = lex.cur;
         auto next = get_next(lex);
-        switch(next) {
-            case Token::Digit: operands.push_back(std::make_unique<Digit>(lex.number)); break;
-            case Token::Identifier: {
-                                        if(lex.string.compare("cell") == 0) {
-                                            consume_type(lex, Token::LBracket);
-                                            consume_type(lex, Token::Digit);
-                                            int cell_index = lex.number;
-                                            consume_type(lex, Token::RBracket);
-                                            operands.push_back(std::make_unique<RefDigit>(context.cells[cell_index]));
-                                        } else if(context.parameters.find(lex.string) != context.parameters.end()) {
-                                            operands.push_back(std::make_unique<RefDigit>(context.parameters[lex.string]));
-                                        } else {
-                                            abort();
-                                        }
-                                        break;
-                                    }
-            case Token::LBracket: operators.push_back(Token::LBracket); break;
-            case Token::RBracket: {
-                                    while(operators.back() != Token::LBracket) {
-                                        process_op(operands, operators);
-                                    }
-                                    operators.pop_back();
-                                    break;
-                                }
-            default: if(next == Token::Plus || next == Token::Multiply) {
-                        while(!operators.empty() && get_prio(operators.back()) >= get_prio(next)) {
-                            process_op(operands, operators);
-                        }
-                        operators.push_back(next);
-                        break;
-                     } else {
-                        while(!operators.empty()) {
-                            process_op(operands, operators);
-                        }
-                        if(operands.size()!=1) {
-                            abort();
-                        }
-                        expression = std::move(operands[0]);
-                        lex.cur = back;
-                        return;
-                     }
+        if(next == Token::Digit) operands.push_back(std::make_unique<Digit>(lex.number));
+        else if(next == Token::LBracket) operators.push_back(Token::LBracket);
+        else if(next == Token::Identifier) {
+            if(lex.string.compare("cell") == 0) {
+                consume_type(lex, Token::LBracket);
+                consume_type(lex, Token::Digit);
+                int cell_index = lex.number;
+                consume_type(lex, Token::RBracket);
+                operands.push_back(std::make_unique<RefDigit>(context.cells[cell_index]));
+            } else if(context.parameters.find(lex.string) != context.parameters.end()) {
+                operands.push_back(std::make_unique<RefDigit>(context.parameters[lex.string]));
+            } else {
+                abort();
+            }
 
+        } else if(next == Token::RBracket) {
+            while(operators.back() != Token::LBracket) {
+                process_op(operands, operators);
+            }
+            operators.pop_back();
+
+        } else if(next == Token::Plus || next == Token::Multiply) {
+            while(!operators.empty() && get_prio(operators.back()) >= get_prio(next))
+                process_op(operands, operators);
+            operators.push_back(next);
+
+        } else {
+            while(!operators.empty()) 
+                process_op(operands, operators);
+            if(operands.size()!=1) {
+                abort();
+            }
+            expression = std::move(operands[0]);
+            lex.cur = back;
+            return;
         }
     }
 }
