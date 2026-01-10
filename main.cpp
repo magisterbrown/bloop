@@ -110,8 +110,9 @@ void process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token
     auto left  = std::move(operands.back());  operands.pop_back();
     auto op    = std::move(operators.back()); operators.pop_back();
     switch(op) {
-        case Token::Multiply: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Multiply));
-        case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add));
+        case Token::Multiply: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Multiply)); break;
+        case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add)); break;
+        default: abort();
     }
     
 }
@@ -125,7 +126,6 @@ Assignment::Assignment(Lexer &lex, Context context) : context(context) {
     consume_type(lex, Token::Assign);
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
-    asm("int3");
     for(;;) {
         Cur back = lex.cur;
         auto next = get_next(lex);
