@@ -1,2 +1,3 @@
 cmp
 stb/main
+*.o
