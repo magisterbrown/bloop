@@ -4,10 +4,10 @@ block 0: begin
     loop n times:
     block 1: begin
         cell(0) <= 3 * cell(0);
-    block 1: end
+    block 1: end;
     loop cell(0) times:
     block 2: begin
         cell(1) <= 2 * cell(0);
     block 2: end;
     output <= cell(1);
-block 0: end
+block 0: end.
