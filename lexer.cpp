@@ -16,6 +16,7 @@ std::string Lexer::print_token() {
         case Token::Assign:         return "Assign";
         case Token::Multiply:       return "Multiply";
         case Token::Plus:           return "Plus";
+        case Token::Dot:            return "Dot";
         case Token::None:           return "None";
     }
     return "";
@@ -65,6 +66,7 @@ bool Lexer::next_token() {
         case '(': tok=Token::LBracket; return true;
         case ')': tok=Token::RBracket; return true;
         case ',': tok=Token::Comma; return true;
+        case '.': tok=Token::Dot; return true;
     }
 
     if(std::isalpha(ch)) {

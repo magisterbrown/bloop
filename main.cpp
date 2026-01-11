@@ -271,6 +271,7 @@ private:
 };
 
 Procedure::Procedure(Lexer &lex) {
+    asm("int3");
     consume_name(lex, "define");
     consume_name(lex, "procedure");
     consume_type(lex, Token::Backticks);
@@ -290,6 +291,7 @@ Procedure::Procedure(Lexer &lex) {
     } 
     consume_type(lex, Token::Column);
     bl = Block(lex, context);
+    consume_type(lex, Token::Dot);
 }
 
 
@@ -312,6 +314,5 @@ int main() {
         if(start == Token::Identifier) {
             auto proc = Procedure(lex);
         }
-        break;
     }
 }

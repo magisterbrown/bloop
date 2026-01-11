@@ -15,6 +15,7 @@ enum class Token
     None,
     Digit,
     Comma,
+    Dot,
 };
 
 
