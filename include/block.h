@@ -17,7 +17,7 @@ public:
     Block(Lexer &lex, Context &context);
     void execute();
 private: 
-    //std::vector<Step> steps;
+    std::vector<std::unique_ptr<Step>> steps;
     int index;
 };
 #endif

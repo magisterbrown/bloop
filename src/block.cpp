@@ -26,6 +26,7 @@ Assignment::Assignment(Lexer &lex, Context &context) : context(context){
 }
 
 void Assignment::execute() {
+    context.cells[target_idx] = expression->get();
 }
 
 class OutputAssignment : public Step {
@@ -44,6 +45,7 @@ OutputAssignment::OutputAssignment(Lexer &lex, Context &context) : context(conte
 }
 
 void OutputAssignment::execute() {
+    context.output = expression->get();
 }
 
 class Loop : public Step{
@@ -64,6 +66,10 @@ Loop::Loop(Lexer &lex, Context &context) {
 }
 
 void Loop::execute() {
+    int n = n_times->get();
+    for(int i=0;i<n;i++) {
+        iteration.execute();
+    }
 }
 
 Block::Block(Lexer &lex, Context &context) {
@@ -78,11 +84,11 @@ Block::Block(Lexer &lex, Context &context) {
         std::string name = lex.string;
         lex.cur = checkpoint;
         if(name.compare("cell") == 0) {
-            //steps.push_back(Assignment(lex, context));
+            steps.push_back(std::make_unique<Assignment>(lex, context));
         } else if(name.compare("output") == 0) {
-            //steps.push_back(OutputAssignment(lex, context));
+            steps.push_back(std::make_unique<OutputAssignment>(lex, context));
         } else if(name.compare("loop") == 0) {
-            //steps.push_back(Loop(lex, context));
+            steps.push_back(std::make_unique<Loop>(lex, context));
         } else if(name.compare("block") == 0) {
             break;
         }
@@ -98,7 +104,8 @@ Block::Block(Lexer &lex, Context &context) {
 }
 
 void Block::execute() {
-
+    for(auto &step : steps)
+        step->execute();
 }
 
 
