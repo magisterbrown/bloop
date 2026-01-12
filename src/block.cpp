@@ -7,6 +7,7 @@ class Assignment : public Step {
 public:
     Assignment() = default;
     Assignment(Lexer &lex, Context &context);
+    void execute() override;
 private:
     Context &context;
     int target_idx;
@@ -24,9 +25,13 @@ Assignment::Assignment(Lexer &lex, Context &context) : context(context){
         context.cells[target_idx] = 0;
 }
 
+void Assignment::execute() {
+}
+
 class OutputAssignment : public Step {
 public:
     OutputAssignment(Lexer &lex, Context &context);
+    void execute() override;
 private:
     Context &context;
     std::unique_ptr<SExpr> expression;
@@ -38,11 +43,14 @@ OutputAssignment::OutputAssignment(Lexer &lex, Context &context) : context(conte
         expression = parse_expression(lex, context);
 }
 
+void OutputAssignment::execute() {
+}
+
 class Loop : public Step{
 public: 
     Loop(Lexer &lex, Context &context);
+    void execute() override;
 private:
-    //Assignment n_times;
     std::unique_ptr<SExpr> n_times;
     Block iteration;
 };
@@ -53,6 +61,9 @@ Loop::Loop(Lexer &lex, Context &context) {
     consume_name(lex, "times");
     consume_type(lex, Token::Column);
     iteration = Block(lex, context);
+}
+
+void Loop::execute() {
 }
 
 Block::Block(Lexer &lex, Context &context) {
@@ -67,11 +78,11 @@ Block::Block(Lexer &lex, Context &context) {
         std::string name = lex.string;
         lex.cur = checkpoint;
         if(name.compare("cell") == 0) {
-            steps.push_back(Assignment(lex, context));
+            //steps.push_back(Assignment(lex, context));
         } else if(name.compare("output") == 0) {
-            steps.push_back(OutputAssignment(lex, context));
+            //steps.push_back(OutputAssignment(lex, context));
         } else if(name.compare("loop") == 0) {
-            steps.push_back(Loop(lex, context));
+            //steps.push_back(Loop(lex, context));
         } else if(name.compare("block") == 0) {
             break;
         }
@@ -84,6 +95,10 @@ Block::Block(Lexer &lex, Context &context) {
     consume_type(lex, Token::Column);
     consume_name(lex, "end");
     // Finish parsing a block
+}
+
+void Block::execute() {
+
 }
 
 

@@ -7,7 +7,8 @@
 
 class Step {
 public: 
-    void execute();
+    virtual void execute() = 0;
+    virtual ~Step() = default;
 };
 
 class Block {
@@ -16,7 +17,7 @@ public:
     Block(Lexer &lex, Context &context);
     void execute();
 private: 
-    std::vector<Step> steps;
+    //std::vector<Step> steps;
     int index;
 };
 #endif
