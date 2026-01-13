@@ -14,7 +14,7 @@ public:
 class Block {
 public: 
     Block() = default;
-    Block(Lexer &lex, Context &context);
+    Block(Lexer &lex, std::shared_ptr<Context> context);
     void execute();
 private: 
     std::vector<std::unique_ptr<Step>> steps;

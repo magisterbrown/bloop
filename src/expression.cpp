@@ -24,19 +24,19 @@ private:
     
 class CellDigit : public SExpr {
 public:
-    CellDigit(Context &context, int cell_idx) : context(context), cell_idx(cell_idx) {};
-    int get() override {return context.cells[cell_idx];};
+    CellDigit(std::shared_ptr<Context> context, int cell_idx) : context(context), cell_idx(cell_idx) {};
+    int get() override {return context->cells[cell_idx];};
 private:
-    Context &context;
+    std::shared_ptr<Context> context;
     int cell_idx;
 };
 
 class ParamDigit : public SExpr {
 public:
-    ParamDigit(Context &context, std::string param_name) : context(context), param_name(param_name) {};
-    int get() override {return context.parameters[param_name];};
+    ParamDigit(std::shared_ptr<Context> context, std::string param_name) : context(context), param_name(param_name) {};
+    int get() override {return context->parameters[param_name];};
 private:
-    Context &context;
+    std::shared_ptr<Context> context;
     std::string param_name;
 };
 
@@ -70,7 +70,7 @@ void process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token
     
 }
 
-std::unique_ptr<SExpr> parse_expression(Lexer &lex, Context &context) {
+std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context) {
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
     Cur back;
@@ -87,12 +87,12 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, Context &context) {
                 consume_type(lex, Token::Digit);
                 int cell_index = lex.number;
                 consume_type(lex, Token::RBracket);
-                if(context.cells.find(cell_index) == context.cells.end()){
+                if(context->cells.find(cell_index) == context->cells.end()){
                     // Uninitialized cell
                     abort();
                 }
                 operands.push_back(std::make_unique<CellDigit>(context, cell_index));
-            } else if(context.parameters.find(lex.string) != context.parameters.end()) {
+            } else if(context->parameters.find(lex.string) != context->parameters.end()) {
                 operands.push_back(std::make_unique<ParamDigit>(context, lex.string));
             } else break;
 

@@ -17,24 +17,25 @@ public:
     Procedure(Lexer &lex);
     int prio;
     int execute(std::vector<int> args);
+    std::string name;
 private:
-    Context context; 
+    std::shared_ptr<Context> context; 
     std::map<int, std::string> positions;
     Block bl;
 };
 
-Procedure::Procedure(Lexer &lex) : context() {
+Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
     consume_name(lex, "define");
     consume_name(lex, "procedure");
     consume_type(lex, Token::Backticks);
     consume_type(lex, Token::Identifier);
-    std::string procedure_name = lex.string;
+    name = lex.string;
     consume_type(lex, Token::Backticks);
     consume_type(lex, Token::LSquareBracket);
     for(int i=0;;i++) {
         consume_type(lex, Token::Identifier);
         //TODO: check for illegal var names
-        context.parameters[lex.string] = 0;
+        context->parameters[lex.string] = 0;
         positions[i] = lex.string;
         Token next = get_next(lex);
         if(next == Token::RSquareBracket) 
@@ -50,15 +51,15 @@ Procedure::Procedure(Lexer &lex) : context() {
 int Procedure::execute(std::vector<int> args) {
     if(args.size() != positions.size())
         abort();
-    context.output = 0; 
-    for(auto &[key, cell]: context.cells)
+    context->output = 0; 
+    for(auto &[key, cell]: context->cells)
         cell=0; 
     for(size_t i=0;i<args.size();i++) {
         std::string name = positions[i];
-        context.parameters[name] = args[i];
+        context->parameters[name] = args[i];
     }
     bl.execute();
-    return context.output;
+    return context->output;
 }
 
 
@@ -84,5 +85,9 @@ int main(int argc, char **argv) {
     for(int i=1;i<argc;i++) {
         args.push_back(std::stoi(argv[i]));
     }
-    last.execute(args);
+    int res = last.execute(args);
+    std::cout << last.name << " With args: ";
+    for(auto &ar : args) 
+        std::cout << ar << " "; 
+    std::cout << "Result is: " << res << std::endl;
 }
