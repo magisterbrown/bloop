@@ -23,7 +23,7 @@ private:
     Block bl;
 };
 
-Procedure::Procedure(Lexer &lex) {
+Procedure::Procedure(Lexer &lex) : context() {
     consume_name(lex, "define");
     consume_name(lex, "procedure");
     consume_type(lex, Token::Backticks);
