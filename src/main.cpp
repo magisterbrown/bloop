@@ -6,10 +6,7 @@
 #include <memory>
 
 #include "lexer.h"
-#include "context.h"
-#include "expression.h"
-#include "parsing.h"
-#include "block.h"
+#include "bloop.h"
 
 class Procedure {
 public:
@@ -86,8 +83,5 @@ int main(int argc, char **argv) {
         args.push_back(std::stoi(argv[i]));
     }
     int res = last.execute(args);
-    std::cout << last.name << " With args: ";
-    for(auto &ar : args) 
-        std::cout << ar << " "; 
-    std::cout << "Result is: " << res << std::endl;
+    std::cout << last.name << " " << res << std::endl;
 }

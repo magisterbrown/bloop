@@ -1,5 +1,4 @@
 #include <string>
-#include "context.h"
 
 #ifndef LEX_H
 #define LEX_H
