@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     std::string source_code;
     {
         std::stringstream content;
-        std::ifstream input("to_the_n.bloop");
+        std::ifstream input(argv[1]);
         content << input.rdbuf();
         source_code = content.str();
     }
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
         }
     }
     std::vector<int> args;
-    for(int i=1;i<argc;i++) {
+    for(int i=2;i<argc;i++) {
         args.push_back(std::stoi(argv[i]));
     }
     int res = last.execute(args);
