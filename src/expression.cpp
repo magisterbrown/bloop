@@ -12,7 +12,7 @@ public:
             case Operator::Add:     return left->get() + right->get(); 
             case Operator::Multiply: return left->get() * right->get(); 
         }
-        abort();
+        UNREACHABLE("Unsupported operator in expression");
     };
 private:
     std::unique_ptr<SExpr> left;
@@ -50,29 +50,28 @@ int get_prio(Token op) {
         case Token::Multiply: return 2;
         case Token::Plus: return 1;
         case Token::LBracket: return -1;
-        default: abort();
+        default: UNREACHABLE("Recieved non expression operator in expression");
     }
 }
 
-void process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token> &operators) {
+int process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token> &operators) {
     if(operands.size()<2 || operators.empty())
-        abort();
+        return 1;
     auto right = std::move(operands.back());  operands.pop_back();
     auto left  = std::move(operands.back());  operands.pop_back();
     auto op    = std::move(operators.back()); operators.pop_back();
     switch(op) {
         case Token::Multiply: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Multiply)); break;
         case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add)); break;
-        default: abort();
+        default: UNREACHABLE("Recieved non expression operator in expression");
     }
-    
+   return 0; 
 }
 
 std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context) {
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
     Cur back;
-    //TODO: factor out in expression
     for(;;) {
         back = lex.cur;
         auto next = get_next(lex);
@@ -86,8 +85,7 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
                 int cell_index = lex.number;
                 consume_type(lex, Token::RBracket);
                 if(context->cells.find(cell_index) == context->cells.end()){
-                    // Uninitialized cell
-                    abort();
+                    report_error(lex, lex.cur, "cell(" + std::to_string(cell_index) + ") have not been initialized");
                 }
                 operands.push_back(std::make_unique<CellDigit>(context, cell_index));
             } else if(context->parameters.find(lex.string) != context->parameters.end()) {
@@ -96,13 +94,15 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
 
         } else if(next == Token::RBracket) {
             while(operators.back() != Token::LBracket) {
-                process_op(operands, operators);
+                if(process_op(operands, operators) != 0)
+                    report_error(lex, lex.cur, "Can not parse an expression"); 
             }
             operators.pop_back();
 
         } else if(next == Token::Plus || next == Token::Multiply) {
             while(!operators.empty() && get_prio(operators.back()) >= get_prio(next))
-                process_op(operands, operators);
+                if(process_op(operands, operators) != 0)
+                    report_error(lex, lex.cur, "Can not parse an expression"); 
             operators.push_back(next);
 
         } else break;
@@ -110,7 +110,7 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
     while(!operators.empty()) 
         process_op(operands, operators);
     if(operands.size()!=1) {
-        abort();
+        report_error(lex, lex.cur, "Can not parse an expression"); 
     }
     lex.cur = back;
     return std::move(operands[0]);

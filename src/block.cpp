@@ -95,10 +95,9 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "block");
     consume_type(lex, Token::Digit);
     if(lex.number != index) 
-        abort();
+        report_error(lex, lex.cur, "Expected end of the block: " + std::to_string(index));
     consume_type(lex, Token::Column);
     consume_name(lex, "end");
-    // Finish parsing a block
 }
 
 void Block::execute() {

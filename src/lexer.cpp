@@ -2,15 +2,18 @@
 
 #include "lexer.h"
 
-std::string Lexer::print_token() {
+#define UNREACHABLE(message) do { fprintf(stderr, "%s:%d: UNREACHABLE: %s\n", __FILE__, __LINE__, message); abort(); } while(0)
+
+
+std::string print_token(Token tok) {
     switch(tok) {
-        case Token::Identifier:     return "Identifier(" + string + ")";
+        case Token::Identifier:     return "Identifier";
         case Token::Backticks:      return "Backticks";
         case Token::LSquareBracket: return "LSquareBracket";
         case Token::RSquareBracket: return "RSquareBracket";
         case Token::Column:         return "Column";
         case Token::Eof:            return "Eof";
-        case Token::Digit:          return "Digit(" + std::to_string(number) + ")";
+        case Token::Digit:          return "Digit";
         case Token::LBracket:       return "LBracket";
         case Token::RBracket:       return "RBracket";
         case Token::Assign:         return "Assign";
@@ -27,8 +30,10 @@ char Lexer::get_char() {
 }
 char Lexer::next_char() {
     char res = _content[cur.pos++];
-    if(res == '\n')
+    if(res == '\n') {
         cur.row++;
+        cur.bol = cur.pos+1;
+    }
     return res;
 }
 Lexer::Lexer(std::string content) : _content(content), tok(Token::None) {}

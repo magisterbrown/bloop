@@ -25,15 +25,14 @@ enum class Token
 
 
 struct Cur {
-    size_t pos, row;
-    Cur() : pos(0), row(0) {}
+    size_t pos, row, bol;
+    Cur() : pos(0), row(0), bol(0) {}
 };
 
 class Lexer {
 public:
     Lexer(std::string content);
     bool next_token();
-    std::string print_token();
 
     Cur cur;
 
@@ -41,10 +40,11 @@ public:
     int number;
     std::string string;
     
-private:
     std::string _content;
+private:
     char get_char();
     char next_char();
 };
 
+std::string print_token(Token tok);
 #endif

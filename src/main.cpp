@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <set>
 
 #include "lexer.h"
 #include "bloop.h"
@@ -21,6 +22,8 @@ private:
     Block bl;
 };
 
+std::set<std::string> reserved_names = {"define", "procedure", "block", "begin", "times", "loop", "cell", "end", "output"};
+
 Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
     consume_name(lex, "define");
     consume_name(lex, "procedure");
@@ -31,14 +34,15 @@ Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
     consume_type(lex, Token::LSquareBracket);
     for(int i=0;;i++) {
         consume_type(lex, Token::Identifier);
-        //TODO: check for illegal var names
+        if(reserved_names.count(lex.string))
+            report_error(lex, lex.cur, "Word: '" + lex.string + "' is reserved and can't be used as variable name");
         context->parameters[lex.string] = 0;
         positions[i] = lex.string;
         Token next = get_next(lex);
         if(next == Token::RSquareBracket) 
             break;
         if(next != Token::Comma)
-            abort();
+            report_error(lex, lex.cur, "Expected next argument separated by ','");
     } 
     consume_type(lex, Token::Column);
     bl = Block(lex, context);
