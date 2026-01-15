@@ -12,6 +12,7 @@ std::string print_token(Token tok) {
         case Token::LSquareBracket: return "LSquareBracket";
         case Token::RSquareBracket: return "RSquareBracket";
         case Token::Column:         return "Column";
+        case Token::SemiColumn:     return "SemiColumn";
         case Token::Eof:            return "Eof";
         case Token::Digit:          return "Digit";
         case Token::LBracket:       return "LBracket";

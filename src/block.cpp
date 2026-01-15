@@ -79,6 +79,7 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     for(;;) {
         Cur checkpoint = lex.cur;
         consume_type(lex, Token::Identifier);
+        Cur last = lex.cur;
         std::string name = lex.string;
         lex.cur = checkpoint;
         if(name.compare("cell") == 0) {
@@ -89,6 +90,8 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
             steps.push_back(std::make_unique<Loop>(lex, context));
         } else if(name.compare("block") == 0) {
             break;
+        } else {
+           report_error(lex, last, "Expected cell, output, loop or block end on this line"); 
         }
         consume_type(lex, Token::SemiColumn);
     }
