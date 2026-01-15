@@ -1,7 +1,7 @@
 #include <iostream>
 #include "bloop.h"
 
-void report_error(Lexer &lex, Cur &position, std::string msg) {
+void report_error(Lexer &lex, const Cur &position, std::string msg) {
     std::string line = lex._content.substr(position.bol);
     int col = position.pos-1-position.bol;
     std::cerr << "Error on line: " << position.row << " Column: " << col << ":" << std::endl;

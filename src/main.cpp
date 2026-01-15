@@ -17,6 +17,7 @@ public:
     int execute(std::vector<int> args);
     std::string name;
 private:
+    Cur definition;
     std::shared_ptr<Context> context; 
     std::map<int, std::string> positions;
     Block bl;
@@ -32,6 +33,7 @@ Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
     name = lex.string;
     consume_type(lex, Token::Backticks);
     consume_type(lex, Token::LSquareBracket);
+    definition = lex.cur;
     for(int i=0;;i++) {
         consume_type(lex, Token::Identifier);
         if(reserved_names.count(lex.string))
@@ -51,7 +53,7 @@ Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
 
 int Procedure::execute(std::vector<int> args) {
     if(args.size() != positions.size())
-        abort();
+        throw ExecutionError("Expected: " + std::to_string(positions.size()) + " arguments, but got: " + std::to_string(args.size()) + " arguments", definition);
     context->output = 0; 
     for(auto &[key, cell]: context->cells)
         cell=0; 
@@ -86,6 +88,10 @@ int main(int argc, char **argv) {
     for(int i=2;i<argc;i++) {
         args.push_back(std::stoi(argv[i]));
     }
-    int res = last.execute(args);
-    std::cout << last.name << " " << res << std::endl;
+    try {
+        int res = last.execute(args);
+        std::cout << last.name << " " << res << std::endl;
+    } catch(const ExecutionError &e) {
+        report_error(lex, e.point, e.msg);
+    }
 }

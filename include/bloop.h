@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 #include "lexer.h"
 
@@ -24,7 +25,7 @@ public: virtual int get() = 0;
 
 std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context); 
 
-void report_error(Lexer &lex, Cur &position, std::string msg);
+void report_error(Lexer &lex, const Cur &position, std::string msg);
 Token get_next(Lexer &lex);
 Token peek_next(Lexer &lex);
 void consume_type(Lexer &lex, Token expected); 
@@ -44,5 +45,12 @@ public:
 private: 
     std::vector<std::unique_ptr<Step>> steps;
     int index;
+};
+
+class ExecutionError : public std::exception {
+public: 
+    std::string msg;
+    Cur point;
+    ExecutionError(std::string msg, Cur point) : msg(msg), point(point) {}
 };
 #endif
