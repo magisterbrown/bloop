@@ -69,11 +69,7 @@ private:
 
 Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "loop");
-    Cur save = lex.cur;
-    // TODO: dont assume Identifier here
-    consume_type(lex, Token::Identifier);
-    lex.cur = save;
-    if(lex.string.compare("at") == 0) {
+    if(peek_next(lex) == Token::Identifier && lex.string.compare("at") == 0) {
         consume_name(lex, "at");
         consume_name(lex, "most");
         abortable = true;

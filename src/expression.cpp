@@ -127,7 +127,8 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
         } else break;
     }
     while(!operators.empty()) 
-        process_op(operands, operators);
+        if(process_op(operands, operators) != 0)
+            report_error(lex, lex.cur, "Can not parse an expression"); 
     if(operands.size()!=1) {
         report_error(lex, lex.cur, "Can not parse an expression"); 
     }
