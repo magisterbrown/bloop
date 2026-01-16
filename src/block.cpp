@@ -1,6 +1,7 @@
 #include <memory>
 #include "bloop.h"
 
+
 class Assignment : public Step {
 public:
     Assignment() = default;
@@ -89,6 +90,14 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        return std::make_unique<Assignment>(lex, context);
    } else if(name.compare("output") == 0) {
        return std::make_unique<OutputAssignment>(lex, context);
+   } else if(name.compare("quit") == 0) {
+       consume_name(lex, "quit");
+       consume_name(lex, "block");
+       consume_type(lex, Token::Digit);
+   } else if(name.compare("abort") == 0) {
+       consume_name(lex, "abort");
+       consume_name(lex, "loop");
+       consume_type(lex, Token::Digit);
    } else if(name.compare("if") == 0) {
        return std::make_unique<IfStatement>(lex, context);
    } else if(name.compare("loop") == 0) {
@@ -120,7 +129,6 @@ IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
 
 void IfStatement::execute() {
 }
-
 
 
 Block::Block(Lexer &lex, std::shared_ptr<Context> context) {

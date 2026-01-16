@@ -31,6 +31,15 @@ Token peek_next(Lexer &lex);
 void consume_type(Lexer &lex, Token expected); 
 void consume_name(Lexer &lex, std::string name);
 
+class StepResult {
+public:
+    enum class Result { Quit, Abort, Continue};
+    Result res;
+    int block_index = -1;
+    StepResult() : res(Result::Continue) {};
+    StepResult(Result res, int block_index) : res(res), block_index(block_index) {};
+};
+
 class Step {
 public: 
     virtual void execute() = 0;
