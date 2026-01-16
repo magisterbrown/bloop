@@ -70,15 +70,14 @@ void Loop::execute() {
     }
 }
 
-//class IfStatement : public Step {
-//public: 
-//    IfStatement(Lexer &lex, std::shared_ptr<Context> context);
-//    void execute() override;
-//};
-//
-//IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
-//
-//}
+class IfStatement : public Step {
+public: 
+    IfStatement(Lexer &lex, std::shared_ptr<Context> context);
+    void execute() override;
+private:
+    std::unique_ptr<SExpr> condition;
+    std::unique_ptr<Step> step;
+};
 
 std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> context) {
    Cur checkpoint = lex.cur;
@@ -90,8 +89,8 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        return std::make_unique<Assignment>(lex, context);
    } else if(name.compare("output") == 0) {
        return std::make_unique<OutputAssignment>(lex, context);
-//   } else if(name.compare("if") == 0) {
-//       return std::make_unique<IfStatement>(lex, context);
+   } else if(name.compare("if") == 0) {
+       return std::make_unique<IfStatement>(lex, context);
    } else if(name.compare("loop") == 0) {
        return std::make_unique<Loop>(lex, context);
    } else if(name.compare("block") == 0) {
@@ -107,6 +106,21 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
    } 
    report_error(lex, last, "Expected cell, output, loop or block on this line"); 
 }
+
+IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
+    consume_name(lex, "if");
+    condition = parse_expression(lex, context);
+    consume_type(lex, Token::Comma);
+    consume_name(lex, "then");
+    consume_type(lex, Token::Column);
+    step = parse_single_step(lex, context);
+    if(!step)
+        report_error(lex, lex.cur, "If should be follwed by execution step or block");
+}
+
+void IfStatement::execute() {
+}
+
 
 
 Block::Block(Lexer &lex, std::shared_ptr<Context> context) {

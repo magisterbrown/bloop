@@ -1,4 +1,4 @@
-define procedure ``minus`` [M,N]:
+define procedure ``minus`` [m,n]:
 block 0: begin
     if m<n, then:
     quit block 0;

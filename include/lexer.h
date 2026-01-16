@@ -21,6 +21,8 @@ enum class Token
     Digit,
     Comma,
     Dot,
+    Less,
+    More,
 };
 
 
@@ -44,6 +46,7 @@ public:
 private:
     char get_char();
     char next_char();
+    char peek_char();
 };
 
 std::string print_token(Token tok);

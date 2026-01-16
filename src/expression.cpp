@@ -5,12 +5,14 @@
 
 class Node : public SExpr {
 public:
-    enum class Operator { Add, Multiply };
+    enum class Operator { Add, Multiply, More, Less };
     Node(std::unique_ptr<SExpr> left, std::unique_ptr<SExpr> right, Operator operate) : left(std::move(left)), right(std::move(right)), operate(operate) {}
     int get() override { 
         switch(operate) {
             case Operator::Add:     return left->get() + right->get(); 
             case Operator::Multiply: return left->get() * right->get(); 
+            case Operator::More:     return left->get() > right->get(); 
+            case Operator::Less: return left->get() < right->get(); 
         }
         UNREACHABLE("Unsupported operator in expression");
     };
@@ -47,8 +49,10 @@ public:
 
 int get_prio(Token op) {
     switch(op) {
-        case Token::Multiply: return 2;
-        case Token::Plus: return 1;
+        case Token::Multiply: return 3;
+        case Token::Plus: return 2;
+        case Token::More: return 1;
+        case Token::Less: return 1;
         case Token::LBracket: return -1;
         default: UNREACHABLE("Recieved non expression operator in expression");
     }
@@ -63,6 +67,8 @@ int process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token>
     switch(op) {
         case Token::Multiply: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Multiply)); break;
         case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add)); break;
+        case Token::More: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::More)); break;
+        case Token::Less: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Less)); break;
         default: UNREACHABLE("Recieved non expression operator in expression");
     }
    return 0; 
@@ -99,7 +105,7 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
             }
             operators.pop_back();
 
-        } else if(next == Token::Plus || next == Token::Multiply) {
+        } else if(next == Token::Plus || next == Token::Multiply || next == Token::More || next == Token::Less) {
             while(!operators.empty() && get_prio(operators.back()) >= get_prio(next))
                 if(process_op(operands, operators) != 0)
                     report_error(lex, lex.cur, "Can not parse an expression"); 

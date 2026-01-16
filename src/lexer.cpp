@@ -21,6 +21,8 @@ std::string print_token(Token tok) {
         case Token::Multiply:       return "Multiply";
         case Token::Plus:           return "Plus";
         case Token::Dot:            return "Dot";
+        case Token::More:           return "More";
+        case Token::Less:           return "Less";
         case Token::None:           return "None";
     }
     return "";
@@ -36,6 +38,9 @@ char Lexer::next_char() {
         cur.bol = cur.pos+1;
     }
     return res;
+}
+char Lexer::peek_char() {
+    return _content[cur.pos+1];
 }
 Lexer::Lexer(std::string content) : _content(content), tok(Token::None) {}
 
@@ -55,10 +60,7 @@ bool Lexer::next_token() {
         tok=Token::Backticks; return true;
     }
 
-    if(ch == '<') {
-        ch = next_char();
-        if(ch != '=')
-            return false;
+    if(ch == '<' && peek_char() == '=') {
         tok=Token::Assign; return true;
     }
 
@@ -73,6 +75,8 @@ bool Lexer::next_token() {
         case ')': tok=Token::RBracket; return true;
         case ',': tok=Token::Comma; return true;
         case '.': tok=Token::Dot; return true;
+        case '>': tok=Token::More; return true;
+        case '<': tok=Token::Less; return true;
     }
 
     if(std::isalpha(ch)) {
