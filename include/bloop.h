@@ -37,7 +37,7 @@ public:
     virtual ~Step() = default;
 };
 
-class Block {
+class Block : public Step {
 public: 
     Block() = default;
     Block(Lexer &lex, std::shared_ptr<Context> context);

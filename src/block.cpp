@@ -70,6 +70,45 @@ void Loop::execute() {
     }
 }
 
+//class IfStatement : public Step {
+//public: 
+//    IfStatement(Lexer &lex, std::shared_ptr<Context> context);
+//    void execute() override;
+//};
+//
+//IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
+//
+//}
+
+std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> context) {
+   Cur checkpoint = lex.cur;
+   consume_type(lex, Token::Identifier);
+   Cur last = lex.cur;
+   std::string name = lex.string;
+   lex.cur = checkpoint;
+   if(name.compare("cell") == 0) {
+       return std::make_unique<Assignment>(lex, context);
+   } else if(name.compare("output") == 0) {
+       return std::make_unique<OutputAssignment>(lex, context);
+//   } else if(name.compare("if") == 0) {
+//       return std::make_unique<IfStatement>(lex, context);
+   } else if(name.compare("loop") == 0) {
+       return std::make_unique<Loop>(lex, context);
+   } else if(name.compare("block") == 0) {
+       consume_name(lex, "block");
+       consume_type(lex, Token::Digit);
+       consume_type(lex, Token::Column);
+       consume_type(lex, Token::Identifier);
+       if(lex.string.compare("end") == 0) {
+           lex.cur = checkpoint;
+           return 0;
+       }
+       return std::make_unique<Block>(lex, context);
+   } 
+   report_error(lex, last, "Expected cell, output, loop or block on this line"); 
+}
+
+
 Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "block");
     consume_type(lex, Token::Digit);
@@ -77,22 +116,9 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_type(lex, Token::Column);
     consume_name(lex, "begin");
     for(;;) {
-        Cur checkpoint = lex.cur;
-        consume_type(lex, Token::Identifier);
-        Cur last = lex.cur;
-        std::string name = lex.string;
-        lex.cur = checkpoint;
-        if(name.compare("cell") == 0) {
-            steps.push_back(std::make_unique<Assignment>(lex, context));
-        } else if(name.compare("output") == 0) {
-            steps.push_back(std::make_unique<OutputAssignment>(lex, context));
-        } else if(name.compare("loop") == 0) {
-            steps.push_back(std::make_unique<Loop>(lex, context));
-        } else if(name.compare("block") == 0) {
+        std::unique_ptr<Step> next = parse_single_step(lex, context);
+        if(!next)
             break;
-        } else {
-           report_error(lex, last, "Expected cell, output, loop or block end on this line"); 
-        }
         consume_type(lex, Token::SemiColumn);
     }
     consume_name(lex, "block");
