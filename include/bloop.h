@@ -42,7 +42,7 @@ public:
 
 class Step {
 public: 
-    virtual void execute() = 0;
+    virtual StepResult execute() = 0;
     virtual ~Step() = default;
 };
 
@@ -50,7 +50,7 @@ class Block : public Step {
 public: 
     Block() = default;
     Block(Lexer &lex, std::shared_ptr<Context> context);
-    void execute();
+    StepResult execute();
 private: 
     std::vector<std::unique_ptr<Step>> steps;
     int index;

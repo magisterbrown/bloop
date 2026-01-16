@@ -6,7 +6,7 @@ class Assignment : public Step {
 public:
     Assignment() = default;
     Assignment(Lexer &lex, std::shared_ptr<Context> context);
-    void execute() override;
+    StepResult execute() override;
 private:
     std::shared_ptr<Context> context;
     int target_idx;
@@ -24,14 +24,15 @@ Assignment::Assignment(Lexer &lex, std::shared_ptr<Context> context) : context(c
         context->cells[target_idx] = 0;
 }
 
-void Assignment::execute() {
+StepResult Assignment::execute() {
     context->cells[target_idx] = expression->get();
+    return StepResult();
 }
 
 class OutputAssignment : public Step {
 public:
     OutputAssignment(Lexer &lex, std::shared_ptr<Context> context);
-    void execute() override;
+    StepResult execute() override;
 private:
     std::shared_ptr<Context> context;
     std::unique_ptr<SExpr> expression;
@@ -43,14 +44,15 @@ OutputAssignment::OutputAssignment(Lexer &lex, std::shared_ptr<Context> context)
         expression = parse_expression(lex, context);
 }
 
-void OutputAssignment::execute() {
+StepResult OutputAssignment::execute() {
     context->output = expression->get();
+    return StepResult();
 }
 
 class Loop : public Step{
 public: 
     Loop(Lexer &lex, std::shared_ptr<Context> context);
-    void execute() override;
+    StepResult execute() override;
 private:
     std::unique_ptr<SExpr> n_times;
     Block iteration;
@@ -64,21 +66,26 @@ Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
     iteration = Block(lex, context);
 }
 
-void Loop::execute() {
+StepResult Loop::execute() {
     int n = n_times->get();
     for(int i=0;i<n;i++) {
         iteration.execute();
     }
+    return StepResult();
 }
 
 class IfStatement : public Step {
 public: 
     IfStatement(Lexer &lex, std::shared_ptr<Context> context);
-    void execute() override;
+    StepResult execute() override;
 private:
     std::unique_ptr<SExpr> condition;
     std::unique_ptr<Step> step;
 };
+
+StepResult IfStatement::execute() {
+    return StepResult();
+}
 
 std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> context) {
    Cur checkpoint = lex.cur;
@@ -127,8 +134,6 @@ IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
         report_error(lex, lex.cur, "If should be follwed by execution step or block");
 }
 
-void IfStatement::execute() {
-}
 
 
 Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
@@ -152,9 +157,10 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "end");
 }
 
-void Block::execute() {
+StepResult Block::execute() {
     for(auto &step : steps)
         step->execute();
+    return StepResult();
 }
 
 
