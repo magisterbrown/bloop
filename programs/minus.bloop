@@ -8,4 +8,4 @@ block 0: begin
         abort loop 1;
         output <= output+1;
     block 1: end;
-block 0 end  
+block 0: end. 

@@ -59,6 +59,7 @@ bool Lexer::next_token() {
     }
 
     if(ch == '<' && get_char() == '=') {
+        next_char();
         tok=Token::Assign; return true;
     }
 
