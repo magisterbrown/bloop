@@ -1,6 +1,14 @@
 #include <memory>
 #include "bloop.h"
 
+class Exit : public Step {
+public:
+    Exit(StepResult res) : res(res) {};
+    StepResult execute() override {return res;};
+private:
+    StepResult res;
+};
+
 
 class Assignment : public Step {
 public:
@@ -101,10 +109,12 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        consume_name(lex, "quit");
        consume_name(lex, "block");
        consume_type(lex, Token::Digit);
+       return std::make_unique<Exit>(StepResult(StepResult::Value::Quit, lex.number));
    } else if(name.compare("abort") == 0) {
        consume_name(lex, "abort");
        consume_name(lex, "loop");
        consume_type(lex, Token::Digit);
+       return std::make_unique<Exit>(StepResult(StepResult::Value::Abort, lex.number));
    } else if(name.compare("if") == 0) {
        return std::make_unique<IfStatement>(lex, context);
    } else if(name.compare("loop") == 0) {

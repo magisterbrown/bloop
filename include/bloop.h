@@ -33,11 +33,11 @@ void consume_name(Lexer &lex, std::string name);
 
 class StepResult {
 public:
-    enum class Result { Quit, Abort, Continue};
-    Result res;
+    enum class Value { Quit, Abort, Continue};
+    Value res;
     int block_index = -1;
-    StepResult() : res(Result::Continue) {};
-    StepResult(Result res, int block_index) : res(res), block_index(block_index) {};
+    StepResult() : res(Value::Continue) {};
+    StepResult(Value res, int block_index) : res(res), block_index(block_index) {};
 };
 
 class Step {
