@@ -119,6 +119,7 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
         std::unique_ptr<Step> next = parse_single_step(lex, context);
         if(!next)
             break;
+        steps.push_back(std::move(next));
         consume_type(lex, Token::SemiColumn);
     }
     consume_name(lex, "block");
