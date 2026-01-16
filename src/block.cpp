@@ -62,12 +62,22 @@ public:
     Loop(Lexer &lex, std::shared_ptr<Context> context);
     StepResult execute() override;
 private:
+    bool abortable = false;
     std::unique_ptr<SExpr> n_times;
     Block iteration;
 };
 
 Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "loop");
+    Cur save = lex.cur;
+    // TODO: dont assume Identifier here
+    consume_type(lex, Token::Identifier);
+    lex.cur = save;
+    if(lex.string.compare("at") == 0) {
+        consume_name(lex, "at");
+        consume_name(lex, "most");
+        abortable = true;
+    }
     n_times = parse_expression(lex, context);
     consume_name(lex, "times");
     consume_type(lex, Token::Column);

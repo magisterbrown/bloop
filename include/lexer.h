@@ -23,6 +23,7 @@ enum class Token
     Dot,
     Less,
     More,
+    Eq,
 };
 
 

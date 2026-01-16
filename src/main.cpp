@@ -23,7 +23,7 @@ private:
     Block bl;
 };
 
-std::set<std::string> reserved_names = {"define", "procedure", "block", "begin", "times", "loop", "cell", "end", "output"};
+std::set<std::string> reserved_names = {"define", "procedure", "block", "begin", "times", "loop", "cell", "end", "output", "at", "most", "quit", "abort"};
 
 Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
     consume_name(lex, "define");
