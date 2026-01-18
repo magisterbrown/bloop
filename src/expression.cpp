@@ -118,13 +118,15 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
             }
             operators.pop_back();
 
-        } else if(next == Token::Plus || next == Token::Multiply || next == Token::More || next == Token::Less) {
+        } else if(next == Token::Plus || next == Token::Multiply || next == Token::More || next == Token::Less || next == Token::Eq) {
             while(!operators.empty() && get_prio(operators.back()) >= get_prio(next))
                 if(process_op(operands, operators) != 0)
                     report_error(lex, lex.cur, "Can not parse an expression"); 
             operators.push_back(next);
 
-        } else break;
+        } else {
+            break;
+        }
     }
     while(!operators.empty()) 
         if(process_op(operands, operators) != 0)

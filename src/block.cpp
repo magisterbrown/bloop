@@ -4,7 +4,7 @@
 class Exit : public Step {
 public:
     Exit(StepResult res) : res(res) {};
-    StepResult execute() override {return res;};
+    StepResult execute() override { return res;};
 private:
     StepResult res;
 };
@@ -83,7 +83,18 @@ Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
 StepResult Loop::execute() {
     int n = n_times->get();
     for(int i=0;i<n;i++) {
-        iteration.execute();
+        StepResult res = iteration.execute();
+        if(res.res == StepResult::Value::Abort)
+            if(res.block_index == iteration.index)
+                break;
+            else
+                return res;
+        if(res.res == StepResult::Value::Quit)
+            if(res.block_index == iteration.index)
+                continue;
+            else
+                return res;
+
     }
     return StepResult();
 }
@@ -98,6 +109,9 @@ private:
 };
 
 StepResult IfStatement::execute() {
+    int res = condition->get();
+    if(res>0)
+        return step->execute();
     return StepResult();
 }
 
@@ -174,9 +188,10 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
 }
 
 StepResult Block::execute() {
-    for(auto &step : steps)
-        step->execute();
+    for(auto &step : steps) {
+        StepResult res = step->execute();
+        if(res.res != StepResult::Value::Continue)
+            return res;
+    }
     return StepResult();
 }
-
-

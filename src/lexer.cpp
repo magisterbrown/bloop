@@ -13,6 +13,7 @@ std::string print_token(Token tok) {
         case Token::RSquareBracket: return "RSquareBracket";
         case Token::Column:         return "Column";
         case Token::SemiColumn:     return "SemiColumn";
+        case Token::Comma:          return "Comma";
         case Token::Eof:            return "Eof";
         case Token::Digit:          return "Digit";
         case Token::LBracket:       return "LBracket";
@@ -76,7 +77,7 @@ bool Lexer::next_token() {
         case '.': tok=Token::Dot; return true;
         case '>': tok=Token::More; return true;
         case '<': tok=Token::Less; return true;
-        case '=': tok=Token::Less; return true;
+        case '=': tok=Token::Eq; return true;
     }
 
     if(std::isalpha(ch)) {

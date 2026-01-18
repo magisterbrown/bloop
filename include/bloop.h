@@ -51,9 +51,9 @@ public:
     Block() = default;
     Block(Lexer &lex, std::shared_ptr<Context> context);
     StepResult execute();
+    int index;
 private: 
     std::vector<std::unique_ptr<Step>> steps;
-    int index;
 };
 
 class ExecutionError : public std::exception {

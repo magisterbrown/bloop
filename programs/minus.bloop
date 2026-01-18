@@ -6,6 +6,6 @@ block 0: begin
     block 1: begin
         if output+n=m, then:
         abort loop 1;
-        output <=  output+1;
+        output <= output+1;
     block 1: end;
 block 0: end. 
