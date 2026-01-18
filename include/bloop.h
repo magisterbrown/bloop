@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <set>
 
 #include "lexer.h"
 
@@ -16,6 +17,7 @@ public:
     std::map<int, int> cells;
     std::map<std::string, int> parameters;
     int output = 0;
+    std::set<int> blocks;
 };
 
 class SExpr {

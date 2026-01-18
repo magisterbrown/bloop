@@ -3,7 +3,10 @@
 
 class Exit : public Step {
 public:
-    Exit(StepResult res) : res(res) {};
+    Exit(StepResult res, std::shared_ptr<Context> context, Lexer &lex) : res(res) {
+        if(context->blocks.count(res.block_index) == 0)
+            report_error(lex, lex.cur, "Loop with this number was not defined");
+    };
     StepResult execute() override { return res;};
 private:
     StepResult res;
@@ -129,12 +132,12 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        consume_name(lex, "quit");
        consume_name(lex, "block");
        consume_type(lex, Token::Digit);
-       return std::make_unique<Exit>(StepResult(StepResult::Value::Quit, lex.number));
+       return std::make_unique<Exit>(StepResult(StepResult::Value::Quit, lex.number), context, lex);
    } else if(name.compare("abort") == 0) {
        consume_name(lex, "abort");
        consume_name(lex, "loop");
        consume_type(lex, Token::Digit);
-       return std::make_unique<Exit>(StepResult(StepResult::Value::Abort, lex.number));
+       return std::make_unique<Exit>(StepResult(StepResult::Value::Abort, lex.number), context, lex);
    } else if(name.compare("if") == 0) {
        return std::make_unique<IfStatement>(lex, context);
    } else if(name.compare("loop") == 0) {
@@ -170,6 +173,10 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_name(lex, "block");
     consume_type(lex, Token::Digit);
     index = lex.number;
+    if(context->blocks.count(index) > 0) {
+        report_error(lex, lex.cur, "Can not declare block inside a block with the same number");
+    }
+    context->blocks.insert(index);
     consume_type(lex, Token::Column);
     consume_name(lex, "begin");
     for(;;) {
@@ -185,6 +192,7 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
         report_error(lex, lex.cur, "Expected end of the block: " + std::to_string(index));
     consume_type(lex, Token::Column);
     consume_name(lex, "end");
+    context->blocks.erase(index);
 }
 
 StepResult Block::execute() {
