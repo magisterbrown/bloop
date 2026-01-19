@@ -65,9 +65,9 @@ public:
     std::string name;
     Procedure(Procedure &&other) = default;
     Procedure &operator =(Procedure &&other) = default;
+    std::shared_ptr<Context> context; 
 private:
     Cur definition;
-    std::shared_ptr<Context> context; 
     std::map<int, std::string> positions;
     Block bl;
 };

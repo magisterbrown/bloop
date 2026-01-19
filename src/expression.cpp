@@ -25,15 +25,23 @@ private:
 
 class ProcedureDigit: public SExpr {
 public:
-    ProcedureDigit(std::shared_ptr<Procedure> proc, Lexer &lex, std::shared_ptr<Context> context) : proc(proc) {
-        asm("int3");
-        std::vector<std::unique_ptr<SExpr>> args;
+    ProcedureDigit(std::shared_ptr<Procedure> proc, Lexer &lex, std::shared_ptr<Context> context, ParsingContext parsc) : proc(proc) {
+        consume_type(lex, Token::LSquareBracket);
+        for(;;) {
+            args.push_back(parse_expression(lex, context, parsc));
+            if(peek_next(lex) == Token::RSquareBracket)
+                break;
+            consume_type(lex, Token::Comma);        
+        }
+        consume_type(lex, Token::RSquareBracket);
+        if(args.size() != proc->context->parameters.size()) 
+            report_error(lex, lex.cur, "Procedure: " + proc->name + " expected " + std::to_string(proc->context->parameters.size()) + " argument but received " + std::to_string(args.size()) + " arguments.");
     };
     int get() override {
-        //std::vector<int> evaluated_args;
-        //for(auto &arg : args)
-        //    evaluated_args.push_back(arg.get());
-        //return proc->execute(evaluated_args);
+        std::vector<int> evaluated_args;
+        for(auto &arg : args)
+            evaluated_args.push_back(arg->get());
+        return proc->execute(evaluated_args);
         return 1;
     };
 private:
@@ -128,7 +136,7 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
             } else if(context->parameters.find(lex.string) != context->parameters.end()) {
                 operands.push_back(std::make_unique<ParamDigit>(context, lex.string));
             } else if(parsc.defined.find(lex.string) != parsc.defined.end()) {
-                operands.push_back(std::make_unique<ProcedureDigit>(parsc.defined[lex.string], lex, context));
+                operands.push_back(std::make_unique<ProcedureDigit>(parsc.defined[lex.string], lex, context, parsc));
             } else break;
 
         } else if(next == Token::RBracket) {
