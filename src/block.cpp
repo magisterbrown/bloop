@@ -80,7 +80,17 @@ Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
     n_times = parse_expression(lex, context);
     consume_name(lex, "times");
     consume_type(lex, Token::Column);
+    Cur pref = lex.cur;
+    consume_name(lex, "block");
+    consume_type(lex, Token::Digit);
+    int index = lex.number;
+    lex.cur = pref;
+    
+    if(abortable)
+        context->abortable.insert(index);
     iteration = Block(lex, context);
+    if(abortable)
+        context->abortable.erase(index);
 }
 
 StepResult Loop::execute() {
@@ -132,11 +142,17 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        consume_name(lex, "quit");
        consume_name(lex, "block");
        consume_type(lex, Token::Digit);
+       if(context->blocks.count(lex.number) == 0)
+           report_error(lex, lex.cur, "Loop with this number was not declared");
        return std::make_unique<Exit>(StepResult(StepResult::Value::Quit, lex.number), context, lex);
    } else if(name.compare("abort") == 0) {
        consume_name(lex, "abort");
        consume_name(lex, "loop");
        consume_type(lex, Token::Digit);
+       if(context->blocks.count(lex.number) == 0)
+           report_error(lex, lex.cur, "Loop with this number was not declared");
+       if(context->abortable.count(lex.number) == 0)
+           report_error(lex, lex.cur, "Loop with this number is not abortable, use `at most`");
        return std::make_unique<Exit>(StepResult(StepResult::Value::Abort, lex.number), context, lex);
    } else if(name.compare("if") == 0) {
        return std::make_unique<IfStatement>(lex, context);

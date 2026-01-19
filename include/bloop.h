@@ -18,6 +18,7 @@ public:
     std::map<std::string, int> parameters;
     int output = 0;
     std::set<int> blocks;
+    std::set<int> abortable;
 };
 
 class SExpr {
