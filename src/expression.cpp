@@ -23,6 +23,24 @@ private:
     Operator operate;
 };
 
+class ProcedureDigit: public SExpr {
+public:
+    ProcedureDigit(std::shared_ptr<Procedure> proc, Lexer &lex, std::shared_ptr<Context> context) : proc(proc) {
+        asm("int3");
+        std::vector<std::unique_ptr<SExpr>> args;
+    };
+    int get() override {
+        //std::vector<int> evaluated_args;
+        //for(auto &arg : args)
+        //    evaluated_args.push_back(arg.get());
+        //return proc->execute(evaluated_args);
+        return 1;
+    };
+private:
+    std::shared_ptr<Procedure> proc;
+    std::vector<std::unique_ptr<SExpr>> args;
+};
+
 class OutputDigit : public SExpr {
 public:
     OutputDigit(std::shared_ptr<Context> context) : context(context) {};
@@ -109,6 +127,8 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
                 operands.push_back(std::make_unique<OutputDigit>(context));
             } else if(context->parameters.find(lex.string) != context->parameters.end()) {
                 operands.push_back(std::make_unique<ParamDigit>(context, lex.string));
+            } else if(parsc.defined.find(lex.string) != parsc.defined.end()) {
+                operands.push_back(std::make_unique<ProcedureDigit>(parsc.defined[lex.string], lex, context));
             } else break;
 
         } else if(next == Token::RBracket) {
