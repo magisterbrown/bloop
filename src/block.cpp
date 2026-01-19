@@ -16,7 +16,7 @@ private:
 class Assignment : public Step {
 public:
     Assignment() = default;
-    Assignment(Lexer &lex, std::shared_ptr<Context> context);
+    Assignment(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc);
     StepResult execute() override;
 private:
     std::shared_ptr<Context> context;
@@ -24,14 +24,14 @@ private:
     std::unique_ptr<SExpr> expression;
 };
 
-Assignment::Assignment(Lexer &lex, std::shared_ptr<Context> context) : context(context){
+Assignment::Assignment(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) : context(context){
         consume_name(lex, "cell");
         consume_type(lex, Token::LBracket);
         consume_type(lex, Token::Digit);
         target_idx = lex.number;
         consume_type(lex, Token::RBracket);
         consume_type(lex, Token::Assign);
-        expression = parse_expression(lex, context);
+        expression = parse_expression(lex, context, parsc);
         context->cells[target_idx] = 0;
 }
 
@@ -42,17 +42,17 @@ StepResult Assignment::execute() {
 
 class OutputAssignment : public Step {
 public:
-    OutputAssignment(Lexer &lex, std::shared_ptr<Context> context);
+    OutputAssignment(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc);
     StepResult execute() override;
 private:
     std::shared_ptr<Context> context;
     std::unique_ptr<SExpr> expression;
 };
 
-OutputAssignment::OutputAssignment(Lexer &lex, std::shared_ptr<Context> context) : context(context){
+OutputAssignment::OutputAssignment(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) : context(context){
         consume_name(lex, "output");
         consume_type(lex, Token::Assign);
-        expression = parse_expression(lex, context);
+        expression = parse_expression(lex, context, parsc);
 }
 
 StepResult OutputAssignment::execute() {
@@ -62,7 +62,7 @@ StepResult OutputAssignment::execute() {
 
 class Loop : public Step{
 public: 
-    Loop(Lexer &lex, std::shared_ptr<Context> context);
+    Loop(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc);
     StepResult execute() override;
 private:
     bool abortable = false;
@@ -70,14 +70,14 @@ private:
     Block iteration;
 };
 
-Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
+Loop::Loop(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     consume_name(lex, "loop");
     if(peek_next(lex) == Token::Identifier && lex.string.compare("at") == 0) {
         consume_name(lex, "at");
         consume_name(lex, "most");
         abortable = true;
     }
-    n_times = parse_expression(lex, context);
+    n_times = parse_expression(lex, context, parsc);
     consume_name(lex, "times");
     consume_type(lex, Token::Column);
     Cur pref = lex.cur;
@@ -88,7 +88,7 @@ Loop::Loop(Lexer &lex, std::shared_ptr<Context> context) {
     
     if(abortable)
         context->abortable.insert(index);
-    iteration = Block(lex, context);
+    iteration = Block(lex, context, parsc);
     if(abortable)
         context->abortable.erase(index);
 }
@@ -114,7 +114,7 @@ StepResult Loop::execute() {
 
 class IfStatement : public Step {
 public: 
-    IfStatement(Lexer &lex, std::shared_ptr<Context> context);
+    IfStatement(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc);
     StepResult execute() override;
 private:
     std::unique_ptr<SExpr> condition;
@@ -128,16 +128,16 @@ StepResult IfStatement::execute() {
     return StepResult();
 }
 
-std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> context) {
+std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
    Cur checkpoint = lex.cur;
    consume_type(lex, Token::Identifier);
    Cur last = lex.cur;
    std::string name = lex.string;
    lex.cur = checkpoint;
    if(name.compare("cell") == 0) {
-       return std::make_unique<Assignment>(lex, context);
+       return std::make_unique<Assignment>(lex, context, parsc);
    } else if(name.compare("output") == 0) {
-       return std::make_unique<OutputAssignment>(lex, context);
+       return std::make_unique<OutputAssignment>(lex, context, parsc);
    } else if(name.compare("quit") == 0) {
        consume_name(lex, "quit");
        consume_name(lex, "block");
@@ -155,9 +155,9 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
            report_error(lex, lex.cur, "Loop with this number is not abortable, use `at most`");
        return std::make_unique<Exit>(StepResult(StepResult::Value::Abort, lex.number), context, lex);
    } else if(name.compare("if") == 0) {
-       return std::make_unique<IfStatement>(lex, context);
+       return std::make_unique<IfStatement>(lex, context, parsc);
    } else if(name.compare("loop") == 0) {
-       return std::make_unique<Loop>(lex, context);
+       return std::make_unique<Loop>(lex, context, parsc);
    } else if(name.compare("block") == 0) {
        consume_name(lex, "block");
        consume_type(lex, Token::Digit);
@@ -167,25 +167,25 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
            lex.cur = checkpoint;
            return 0;
        }
-       return std::make_unique<Block>(lex, context);
+       return std::make_unique<Block>(lex, context, parsc);
    } 
    report_error(lex, last, "Expected cell, output, loop or block on this line"); 
 }
 
-IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context) {
+IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     consume_name(lex, "if");
-    condition = parse_expression(lex, context);
+    condition = parse_expression(lex, context, parsc);
     consume_type(lex, Token::Comma);
     consume_name(lex, "then");
     consume_type(lex, Token::Column);
-    step = parse_single_step(lex, context);
+    step = parse_single_step(lex, context, parsc);
     if(!step)
         report_error(lex, lex.cur, "If should be follwed by execution step or block");
 }
 
 
 
-Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
+Block::Block(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     consume_name(lex, "block");
     consume_type(lex, Token::Digit);
     index = lex.number;
@@ -196,7 +196,7 @@ Block::Block(Lexer &lex, std::shared_ptr<Context> context) {
     consume_type(lex, Token::Column);
     consume_name(lex, "begin");
     for(;;) {
-        std::unique_ptr<Step> next = parse_single_step(lex, context);
+        std::unique_ptr<Step> next = parse_single_step(lex, context, parsc);
         if(!next)
             break;
         steps.push_back(std::move(next));

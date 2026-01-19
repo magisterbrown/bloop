@@ -33,8 +33,9 @@ Procedure::Procedure(Lexer &lex, std::map<std::string, std::shared_ptr<Procedure
         if(next != Token::Comma)
             report_error(lex, lex.cur, "Expected next argument separated by ','");
     } 
+    ParsingContext parsc = ParsingContext(defined);
     consume_type(lex, Token::Column);
-    bl = Block(lex, context);
+    bl = Block(lex, context, parsc);
     consume_type(lex, Token::Dot);
 }
 

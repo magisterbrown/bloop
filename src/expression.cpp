@@ -85,7 +85,7 @@ int process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token>
    return 0; 
 }
 
-std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context) {
+std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     std::vector<std::unique_ptr<SExpr>> operands;
     std::vector<Token> operators;
     Cur back;
