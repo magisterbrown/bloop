@@ -1,0 +1,30 @@
+define procedure ``minus`` [m,n]:
+block 0: begin
+    if m<n, then:
+    quit block 0;
+    loop at most m+1 times:
+    block 1: begin
+        if output+n=m, then:
+        abort loop 1;
+        output <= output+1;
+    block 1: end;
+block 0: end. 
+
+define procedure ``remainder`` [m,n]:
+block 0: begin
+    output <= 0;
+block 0: end.
+
+define procedure ``prime?`` [n]:
+block 0: begin
+    if n = 0, then:
+    quit block 0;
+    cell(0) <= 2;
+    loop at most minus[n,2] times:
+    block 1: begin
+        if remainder[n, cell(0)]=0, then:
+        quit block 0;
+        cell(0) <= cell(0) + 1;
+    block 1: end;
+    output <= yes;
+block 0: end.

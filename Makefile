@@ -9,7 +9,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
-%.o: %.cpp
+%.o: %.cpp include/bloop.h include/lexer.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 .PHONY: all clean

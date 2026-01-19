@@ -5,7 +5,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <set>
-
 #include "lexer.h"
 
 #ifndef BLOOP_H
@@ -21,9 +20,10 @@ public:
     std::set<int> abortable;
 };
 
+
 class SExpr {
 public: virtual int get() = 0;
-    virtual ~SExpr() = default; 
+    virtual ~SExpr() = default;
 };
 
 std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> context); 
@@ -64,5 +64,28 @@ public:
     std::string msg;
     Cur point;
     ExecutionError(std::string msg, Cur point) : msg(msg), point(point) {}
+};
+
+class Procedure {
+public:
+    Procedure() = default;
+    Procedure(Lexer &lex, std::map<std::string, std::shared_ptr<Procedure>> &defined);
+    int prio;
+    int execute(std::vector<int> args);
+    std::string name;
+    Procedure(Procedure &&other) = default;
+    Procedure &operator =(Procedure &&other) = default;
+private:
+    Cur definition;
+    std::shared_ptr<Context> context; 
+    std::map<int, std::string> positions;
+    Block bl;
+};
+
+class ParsingContext {
+public: 
+    std::set<int> blocks;
+    std::set<int> abortable;
+    std::map<std::string, std::shared_ptr<Procedure>> &defined;
 };
 #endif

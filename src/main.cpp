@@ -9,23 +9,10 @@
 #include "lexer.h"
 #include "bloop.h"
 
-class Procedure {
-public:
-    Procedure() = default;
-    Procedure(Lexer &lex);
-    int prio;
-    int execute(std::vector<int> args);
-    std::string name;
-private:
-    Cur definition;
-    std::shared_ptr<Context> context; 
-    std::map<int, std::string> positions;
-    Block bl;
-};
 
 std::set<std::string> reserved_names = {"define", "procedure", "block", "begin", "times", "loop", "cell", "end", "output", "at", "most", "quit", "abort"};
 
-Procedure::Procedure(Lexer &lex) : context(std::make_shared<Context>()) {
+Procedure::Procedure(Lexer &lex, std::map<std::string, std::shared_ptr<Procedure>> &defined) : context(std::make_shared<Context>()) {
     consume_name(lex, "define");
     consume_name(lex, "procedure");
     consume_type(lex, Token::Backticks);
@@ -75,13 +62,16 @@ int main(int argc, char **argv) {
         source_code = content.str();
     }
     Lexer lex = Lexer(source_code);
-    Procedure last;
+    std::map<std::string, std::shared_ptr<Procedure>> meat_grinders = {};
+    std::string last;
     for(;;) {
         Token start = peek_next(lex);
         if(start == Token::Eof)
             break;
         if(start == Token::Identifier) {
-            last = Procedure(lex);
+            auto proc = std::make_shared<Procedure>(lex, meat_grinders);
+            last = proc->name;
+            meat_grinders[proc->name] = proc;
         }
     }
     std::vector<int> args;
@@ -89,8 +79,9 @@ int main(int argc, char **argv) {
         args.push_back(std::stoi(argv[i]));
     }
     try {
-        int res = last.execute(args);
-        std::cout << last.name << " " << res << std::endl;
+        auto proc = meat_grinders.extract(last).mapped();
+        int res = proc->execute(args);
+        std::cout << proc->name << " " << res << std::endl;
     } catch(const ExecutionError &e) {
         report_error(lex, e.point, e.msg);
     }
