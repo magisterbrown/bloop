@@ -75,12 +75,22 @@ int main(int argc, char **argv) {
             meat_grinders[proc->name] = proc;
         }
     }
+    if(argc == 1) {
+        std::cout << "Pleas provide a program.bloop file to interpret" << std::endl;
+        return 0;
+    }
+
+    auto proc = meat_grinders.extract(last).mapped();
+    if(argc != (int)(proc->context->parameters.size() + 2)) {
+        std::string type = proc->is_test ? "test" : "function";
+        std::cout << "To interpret " << type << " ``" << proc->name << "`` provide " << std::to_string(proc->context->parameters.size()) << " arguments." << std::endl;
+        return 0;
+    }
     std::vector<int> args;
     for(int i=2;i<argc;i++) {
         args.push_back(std::stoi(argv[i]));
     }
     try {
-        auto proc = meat_grinders.extract(last).mapped();
         int res = proc->execute(args);
         if(proc->is_test) {
             if(res>0) {
