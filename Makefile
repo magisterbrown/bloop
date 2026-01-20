@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -O0 -g3 -I./include -Wall
 SRCS = src/lexer.cpp src/main.cpp src/expression.cpp src/parsing.cpp src/block.cpp
 OBJS = $(SRCS:.cpp=.o)
-TARGET = cmp
+TARGET = bloop
 
 all: $(TARGET)
 
