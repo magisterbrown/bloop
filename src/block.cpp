@@ -174,7 +174,6 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
 IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     consume_name(lex, "if");
     if(peek_next(lex) == Token::LBracket) {
-        //asm("int3");
         consume_type(lex, Token::LBracket);
         condition = parse_expression(lex, context, parsc);
         consume_type(lex, Token::RBracket);
