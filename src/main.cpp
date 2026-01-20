@@ -18,6 +18,7 @@ Procedure::Procedure(Lexer &lex, std::map<std::string, std::shared_ptr<Procedure
     consume_type(lex, Token::Backticks);
     consume_type(lex, Token::Identifier);
     name = lex.string;
+    is_test = lex.is_test;
     consume_type(lex, Token::Backticks);
     consume_type(lex, Token::LSquareBracket);
     definition = lex.cur;
@@ -53,7 +54,6 @@ int Procedure::execute(std::vector<int> args) {
     return context->output;
 }
 
-
 int main(int argc, char **argv) {
     std::string source_code;
     {
@@ -82,7 +82,15 @@ int main(int argc, char **argv) {
     try {
         auto proc = meat_grinders.extract(last).mapped();
         int res = proc->execute(args);
-        std::cout << proc->name << " " << res << std::endl;
+        if(proc->is_test) {
+            if(res>0) {
+                std::cout << proc->name << " Yes" << std::endl;
+            } else {
+                std::cout << proc->name << " No" << std::endl;
+            }
+        } else {
+            std::cout << proc->name << " " << res << std::endl;
+        }
     } catch(const ExecutionError &e) {
         report_error(lex, e.point, e.msg);
     }

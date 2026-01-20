@@ -23,6 +23,9 @@ enum class Token
     Dot,
     Less,
     More,
+    Yes,
+    No,
+    And,
     Eq,
 };
 
@@ -42,6 +45,7 @@ public:
     Token tok;
     int number;
     std::string string;
+    bool is_test;
     
     std::string _content;
 private:

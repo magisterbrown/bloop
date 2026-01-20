@@ -25,6 +25,9 @@ std::string print_token(Token tok) {
         case Token::More:           return "More";
         case Token::Less:           return "Less";
         case Token::Eq:             return "Eq";
+        case Token::Yes:            return "Yes";
+        case Token::No:             return "No";
+        case Token::And:            return "And";
         case Token::None:           return "None";
     }
     return "";
@@ -85,9 +88,18 @@ bool Lexer::next_token() {
         string.push_back(ch);
         ch = get_char();
         while(std::isalnum(ch) || ch  == '-' || ch =='?') {
+            is_test = ch == '?';
             string.push_back(next_char());
             ch = get_char();
         }
+        if(string.compare("yes") == 0) {
+            tok=Token::Yes; return true;
+        } else if(string.compare("no") == 0) {
+            tok=Token::No; return true;
+        } else if(string.compare("and") == 0) {
+            tok=Token::And; return true;
+        }
+
         tok=Token::Identifier; return true;
     }
     if(std::isdigit(ch)) {

@@ -5,7 +5,7 @@
 
 class Node : public SExpr {
 public:
-    enum class Operator { Add, Multiply, More, Less, Eq };
+    enum class Operator { Add, Multiply, More, Less, Eq , And};
     Node(std::unique_ptr<SExpr> left, std::unique_ptr<SExpr> right, Operator operate) : left(std::move(left)), right(std::move(right)), operate(operate) {}
     int get() override { 
         switch(operate) {
@@ -14,6 +14,7 @@ public:
             case Operator::More:     return left->get() > right->get(); 
             case Operator::Less:     return left->get() < right->get(); 
             case Operator::Eq:       return left->get() == right->get(); 
+            case Operator::And:      return left->get() && right->get(); 
         }
         UNREACHABLE("Unsupported operator in expression");
     };
@@ -89,6 +90,7 @@ int get_prio(Token op) {
         case Token::More: return 1;
         case Token::Less: return 1;
         case Token::Eq: return 1;
+        case Token::And: return 1;
         case Token::LBracket: return -1;
         default: UNREACHABLE("Recieved non expression operator in expression");
     }
@@ -105,6 +107,7 @@ int process_op(std::vector<std::unique_ptr<SExpr>> &operands, std::vector<Token>
         case Token::Plus: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Add)); break;
         case Token::More: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::More)); break;
         case Token::Less: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Less)); break;
+        case Token::And: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::And)); break;
         case Token::Eq: operands.push_back(std::make_unique<Node>(std::move(left), std::move(right), Node::Operator::Eq)); break;
         default: UNREACHABLE("Recieved non expression operator in expression");
     }
@@ -119,6 +122,8 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
         back = lex.cur;
         auto next = get_next(lex);
         if(next == Token::Digit) operands.push_back(std::make_unique<Digit>(lex.number));
+        else if(next == Token::Yes) operands.push_back(std::make_unique<Digit>(1));
+        else if(next == Token::No) operands.push_back(std::make_unique<Digit>(0));
         else if(next == Token::LBracket) operators.push_back(Token::LBracket);
         else if(next == Token::Identifier) {
             //TODO accept output as input variable
@@ -146,7 +151,7 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
             }
             operators.pop_back();
 
-        } else if(next == Token::Plus || next == Token::Multiply || next == Token::More || next == Token::Less || next == Token::Eq) {
+        } else if(next == Token::Plus || next == Token::Multiply || next == Token::More || next == Token::Less || next == Token::Eq || next == Token::And) {
             while(!operators.empty() && get_prio(operators.back()) >= get_prio(next))
                 if(process_op(operands, operators) != 0)
                     report_error(lex, lex.cur, "Can not parse an expression"); 

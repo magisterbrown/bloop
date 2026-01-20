@@ -26,7 +26,8 @@ public:
 
 
 class SExpr {
-public: virtual int get() = 0;
+public: 
+    virtual int get() = 0;
     virtual ~SExpr() = default;
 };
 
@@ -66,6 +67,7 @@ public:
     Procedure(Procedure &&other) = default;
     Procedure &operator =(Procedure &&other) = default;
     std::shared_ptr<Context> context; 
+    bool is_test;
 private:
     Cur definition;
     std::map<int, std::string> positions;

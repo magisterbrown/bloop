@@ -21,17 +21,3 @@ block 0: begin
     block 1: end;
     output <= minus[m, cell(0)];
 block 0: end.
-
-define procedure ``prime?`` [n]:
-block 0: begin
-    if n = 0, then:
-    quit block 0;
-    cell(0) <= 2;
-    loop at most minus[n,2] times:
-    block 1: begin
-        if remainder[n, cell(0)]=0, then:
-        quit block 0;
-        cell(0) <= cell(0) + 1;
-    block 1: end;
-    output <= yes;
-block 0: end.
