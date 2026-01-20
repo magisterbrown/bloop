@@ -11,6 +11,8 @@ enum class Token
     RSquareBracket,
     LBracket,
     RBracket,
+    OParent,
+    CParent,
     Assign,
     Multiply,
     Plus,

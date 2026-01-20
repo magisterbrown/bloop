@@ -11,13 +11,15 @@ std::string print_token(Token tok) {
         case Token::Backticks:      return "Backticks";
         case Token::LSquareBracket: return "LSquareBracket";
         case Token::RSquareBracket: return "RSquareBracket";
+        case Token::LBracket:       return "LBracket";
+        case Token::RBracket:       return "RBracket";
         case Token::Column:         return "Column";
         case Token::SemiColumn:     return "SemiColumn";
         case Token::Comma:          return "Comma";
         case Token::Eof:            return "Eof";
         case Token::Digit:          return "Digit";
-        case Token::LBracket:       return "LBracket";
-        case Token::RBracket:       return "RBracket";
+        case Token::OParent:        return "OParent";
+        case Token::CParent:        return "CParent";
         case Token::Assign:         return "Assign";
         case Token::Multiply:       return "Multiply";
         case Token::Plus:           return "Plus";
@@ -70,12 +72,14 @@ bool Lexer::next_token() {
     switch(ch) {
         case '[': tok=Token::LSquareBracket; return true;
         case ']': tok=Token::RSquareBracket; return true;
+        case '{': tok=Token::LBracket; return true;
+        case '}': tok=Token::RBracket; return true;
         case ':': tok=Token::Column; return true;
         case ';': tok=Token::SemiColumn; return true;
         case '*': tok=Token::Multiply; return true;
         case '+': tok=Token::Plus; return true;
-        case '(': tok=Token::LBracket; return true;
-        case ')': tok=Token::RBracket; return true;
+        case '(': tok=Token::OParent; return true;
+        case ')': tok=Token::CParent; return true;
         case ',': tok=Token::Comma; return true;
         case '.': tok=Token::Dot; return true;
         case '>': tok=Token::More; return true;

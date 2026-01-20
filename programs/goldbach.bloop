@@ -1,0 +1,51 @@
+define procedure ``minus`` [m,n]:
+block 0: begin
+    if m<n, then:
+    quit block 0;
+    loop at most m+1 times:
+    block 1: begin
+        if output+n=m, then:
+        abort loop 1;
+        output <= output+1;
+    block 1: end;
+block 0: end. 
+
+define procedure ``remainder`` [m,n]:
+block 0: begin
+    cell(0) <= 0;
+    loop at most m times:
+    block 1: begin
+        if cell(0)+n > m, then:
+        abort loop 1;
+        cell(0) <= cell(0) + n;
+    block 1: end;
+    output <= minus[m, cell(0)];
+block 0: end.
+
+define procedure ``prime?`` [n]:
+block 0: begin
+    if n = 0, then:
+    quit block 0;
+    cell(0) <= 2;
+    loop at most minus[n,2] times:
+    block 1: begin
+        if remainder[n, cell(0)]=0, then:
+        quit block 0;
+        cell(0) <= cell(0) + 1;
+    block 1: end;
+    output <= yes;
+block 0: end.
+
+define procedure ``goldbach?`` [n]:
+block 0: begin
+    cell(0) <= 2;
+    loop at most n times:
+    block 1: begin
+        if {prime?[cell(0)] and prime?[minus[n, cell(0)]]}, then:
+        block 2: begin
+            output <= yes;
+            quit block 0;
+        block 2: end;
+        cell(0) <= cell(0) + 1;
+    block 1: end;
+block 0: end.

@@ -91,7 +91,7 @@ int get_prio(Token op) {
         case Token::Less: return 1;
         case Token::Eq: return 1;
         case Token::And: return 1;
-        case Token::LBracket: return -1;
+        case Token::OParent: return -1;
         default: UNREACHABLE("Recieved non expression operator in expression");
     }
 }
@@ -124,14 +124,14 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
         if(next == Token::Digit) operands.push_back(std::make_unique<Digit>(lex.number));
         else if(next == Token::Yes) operands.push_back(std::make_unique<Digit>(1));
         else if(next == Token::No) operands.push_back(std::make_unique<Digit>(0));
-        else if(next == Token::LBracket) operators.push_back(Token::LBracket);
+        else if(next == Token::OParent) operators.push_back(Token::OParent);
         else if(next == Token::Identifier) {
             //TODO accept output as input variable
             if(lex.string.compare("cell") == 0) {
-                consume_type(lex, Token::LBracket);
+                consume_type(lex, Token::OParent);
                 consume_type(lex, Token::Digit);
                 int cell_index = lex.number;
-                consume_type(lex, Token::RBracket);
+                consume_type(lex, Token::CParent);
                 if(context->cells.find(cell_index) == context->cells.end()){
                     report_error(lex, lex.cur, "cell(" + std::to_string(cell_index) + ") have not been initialized");
                 }
@@ -144,8 +144,8 @@ std::unique_ptr<SExpr> parse_expression(Lexer &lex, std::shared_ptr<Context> con
                 operands.push_back(std::make_unique<ProcedureDigit>(parsc.defined[lex.string], lex, context, parsc));
             } else break;
 
-        } else if(next == Token::RBracket) {
-            while(operators.back() != Token::LBracket) {
+        } else if(next == Token::CParent) {
+            while(operators.back() != Token::OParent) {
                 if(process_op(operands, operators) != 0)
                     report_error(lex, lex.cur, "Can not parse an expression"); 
             }

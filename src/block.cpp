@@ -26,10 +26,10 @@ private:
 
 Assignment::Assignment(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) : context(context){
         consume_name(lex, "cell");
-        consume_type(lex, Token::LBracket);
+        consume_type(lex, Token::OParent);
         consume_type(lex, Token::Digit);
         target_idx = lex.number;
-        consume_type(lex, Token::RBracket);
+        consume_type(lex, Token::CParent);
         consume_type(lex, Token::Assign);
         expression = parse_expression(lex, context, parsc);
         context->cells[target_idx] = 0;
@@ -163,10 +163,9 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
        consume_type(lex, Token::Digit);
        consume_type(lex, Token::Column);
        consume_type(lex, Token::Identifier);
-       if(lex.string.compare("end") == 0) {
-           lex.cur = checkpoint;
+       lex.cur = checkpoint;
+       if(lex.string.compare("end") == 0)
            return 0;
-       }
        return std::make_unique<Block>(lex, context, parsc);
    } 
    report_error(lex, last, "Expected cell, output, loop or block on this line"); 
@@ -174,7 +173,14 @@ std::unique_ptr<Step> parse_single_step(Lexer &lex, std::shared_ptr<Context> con
 
 IfStatement::IfStatement(Lexer &lex, std::shared_ptr<Context> context, ParsingContext &parsc) {
     consume_name(lex, "if");
-    condition = parse_expression(lex, context, parsc);
+    if(peek_next(lex) == Token::LBracket) {
+        //asm("int3");
+        consume_type(lex, Token::LBracket);
+        condition = parse_expression(lex, context, parsc);
+        consume_type(lex, Token::RBracket);
+    } else {
+        condition = parse_expression(lex, context, parsc);
+    }
     consume_type(lex, Token::Comma);
     consume_name(lex, "then");
     consume_type(lex, Token::Column);
