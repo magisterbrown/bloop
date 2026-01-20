@@ -1,0 +1,4 @@
+define procedure ``prime-beyond`` [n]:
+block 0: begin
+    output <= 0;
+block 0: end.
